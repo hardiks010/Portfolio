@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import gsap from "gsap";
 
 const ORBS = [
@@ -130,7 +130,7 @@ tl.to(proxy, {
  
 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-  }, [mascotRef]);
+  }, [mascotRef, onFinished]);
 
   
   
@@ -139,16 +139,25 @@ useEffect(() => {
   onArmsRaised(flyInAndOrbit);
 }, [flyInAndOrbit, onArmsRaised]);
 
-  useEffect(() => {
-    if (!projectsOpen || !mascotRef.current) return;
-    // hide orbs initially
-    gsap.set(["#orb-1", "#orb-2", "#orb-3", "#orb-4"], { opacity: 0 });
-  }, [projectsOpen]);
+useEffect(() => {
+  if (!mascotRef.current) return;
 
-  if (!projectsOpen) return null;
+  if (projectsOpen) {
+    gsap.set(["#orb-1", "#orb-2", "#orb-3", "#orb-4"], {
+      opacity: 0,
+    });
+  }
+}, [projectsOpen, mascotRef]);
+
+
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-40">
+   <div
+  className="fixed inset-0 pointer-events-none z-40"
+  style={{
+    visibility: projectsOpen ? "visible" : "hidden",
+  }}
+>
       {ORBS.map((orb) => (
         <div
           key={orb.id}

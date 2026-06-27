@@ -1,13 +1,36 @@
 "use client";
-import { useEffect, useRef, forwardRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import gsap from "gsap";
 
 const Mascot = forwardRef<HTMLDivElement, {
   projectsOpen: boolean;
+  speaking?: boolean;
+  lookDirection?: "left" | "right" | "center" | "up";
+  introGesture?: "projects" | "about" | "connect" | null;
   onArmsRaised?: () => void;
-  
-}>(({ projectsOpen, onArmsRaised, }, ref) => {
+  onProjectsReset?: () => void;
+}>(({
+  projectsOpen,
+  speaking = false,
+  lookDirection = "center",
+  introGesture = null,
+  onArmsRaised,
+  onProjectsReset,
+}, ref) => {
   const projectsOpenRef = useRef(false);
+  const guidedRef = useRef(false);
+  const wasProjectsOpenRef = useRef(false);
+  const summonTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const onProjectsResetRef = useRef(onProjectsReset);
+
+  useEffect(() => {
+    onProjectsResetRef.current = onProjectsReset;
+  }, [onProjectsReset]);
+
+  useEffect(() => {
+    guidedRef.current =
+      speaking || lookDirection !== "center" || introGesture !== null;
+  }, [introGesture, lookDirection, speaking]);
 
   function blink() {
     const tl = gsap.timeline();
@@ -55,8 +78,10 @@ const Mascot = forwardRef<HTMLDivElement, {
   }
 
   function summonPose() {
+    summonTimelineRef.current?.kill();
     gsap.killTweensOf(["#right-arm", "#left-arm", "#head", "#mascot"]);
     const tl = gsap.timeline();
+    summonTimelineRef.current = tl;
 
     // Reset eyes and head
     tl.to(["#left-eye", "#right-eye"], { x: 0, y: 0, duration: 0.5 }, 0);
@@ -88,18 +113,143 @@ const Mascot = forwardRef<HTMLDivElement, {
 
   useEffect(() => {
     projectsOpenRef.current = projectsOpen;
+
+    if (projectsOpen) {
+      wasProjectsOpenRef.current = true;
+      summonPose();
+      return;
+    }
+
+    if (!wasProjectsOpenRef.current) return;
+    wasProjectsOpenRef.current = false;
+    summonTimelineRef.current?.kill();
+    gsap.killTweensOf([
+      "#left-arm",
+      "#right-arm",
+      "#head",
+      "#left-eye",
+      "#right-eye",
+      "#mouth",
+      "#mouth-line",
+    ]);
+
+    const resetTimeline = gsap.timeline({
+      onComplete: () => onProjectsResetRef.current?.(),
+    });
+    resetTimeline.to(
+      "#left-arm",
+      { rotation: 10, duration: 0.6, ease: "power2.inOut" },
+      0
+    );
+    resetTimeline.to(
+      "#right-arm",
+      { rotation: -10, duration: 0.6, ease: "power2.inOut" },
+      0
+    );
+    resetTimeline.to(
+      "#head",
+      { x: 0, y: 0, rotation: 0, duration: 0.5, ease: "power2.out" },
+      0
+    );
+    resetTimeline.to(
+      ["#left-eye", "#right-eye"],
+      { x: 0, y: 0, height: 32, scaleY: 1, duration: 0.35 },
+      0
+    );
+    resetTimeline.to("#mouth-line", { opacity: 0, duration: 0.2 }, 0);
+    resetTimeline.to(
+      "#mouth",
+      { opacity: 1, width: 48, height: 24, scale: 1, duration: 0.35 },
+      0.1
+    );
+
+    return () => {
+      resetTimeline.kill();
+    };
+    // The transition is intentionally driven only by projectsOpen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectsOpen]);
 
   useEffect(() => {
-    if (projectsOpen) summonPose();
-  }, [projectsOpen]);
+    if (projectsOpen) return;
+
+    gsap.killTweensOf(["#mouth", "#head"]);
+
+    if (!speaking) {
+      gsap.to("#mouth", {
+        width: 48,
+        height: 24,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 0.18,
+        ease: "power2.out",
+      });
+      gsap.to("#head", { rotation: 0, y: 0, duration: 0.25 });
+      return;
+    }
+
+    const talkingTimeline = gsap.timeline({ repeat: -1 });
+    talkingTimeline
+      .to("#mouth", { width: 34, height: 18, duration: 0.12 })
+      .to("#mouth", { width: 52, height: 28, duration: 0.14 })
+      .to("#mouth", { width: 40, height: 13, duration: 0.1 })
+      .to("#mouth", { width: 47, height: 23, duration: 0.13 });
+    talkingTimeline
+      .to("#head", { rotation: -1.4, y: 1, duration: 0.28 }, 0)
+      .to("#head", { rotation: 1.2, y: -1, duration: 0.28 }, 0.28);
+
+    return () => {
+      talkingTimeline.kill();
+    };
+  }, [projectsOpen, speaking]);
+
+  useEffect(() => {
+    if (projectsOpen || speaking) return;
+
+    const x = lookDirection === "left" ? -12 : lookDirection === "right" ? 12 : 0;
+    const y = lookDirection === "up" ? -10 : 0;
+    const rotation =
+      lookDirection === "left" ? -7 : lookDirection === "right" ? 7 : 0;
+
+    gsap.to(["#left-eye", "#right-eye"], {
+      x,
+      y,
+      duration: 0.45,
+      ease: "power2.inOut",
+    });
+    gsap.to("#head", {
+      rotation,
+      x: x * 0.35,
+      y: lookDirection === "up" ? -5 : 0,
+      duration: 0.55,
+      ease: "power2.inOut",
+    });
+  }, [lookDirection, projectsOpen, speaking]);
+
+  useEffect(() => {
+    if (projectsOpen) return;
+
+    const leftRotation = introGesture === "projects" ? 112 : 10;
+    const rightRotation = introGesture === "connect" ? -112 : -10;
+
+    gsap.to("#left-arm", {
+      rotation: leftRotation,
+      duration: 0.55,
+      ease: "power3.inOut",
+    });
+    gsap.to("#right-arm", {
+      rotation: rightRotation,
+      duration: 0.55,
+      ease: "power3.inOut",
+    });
+  }, [introGesture, projectsOpen]);
 
   useEffect(() => {
     const tl = gsap.timeline();
     let isSmiling = false;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (projectsOpenRef.current) return;
+      if (projectsOpenRef.current || guidedRef.current) return;
 
       const mascot = document.getElementById("mascot");
       if (!mascot) return;
