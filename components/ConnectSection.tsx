@@ -224,11 +224,12 @@ export default function ConnectSection({
         >
           <a
             href={RESUME_URL}
+            download
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition-transform hover:scale-105"
           >
-            Open PDF
+            Download Resume
           </a>
         </ContactCard>
       </div>
