@@ -18,37 +18,10 @@ type IntroLine = {
 
 const INTRO_LINES: IntroLine[] = [
   { text: "Hey." },
-  { text: "Welcome." },
 
   { text: "I'm NPC-01." },
-  { text: "Temporary name." },
-  { text: "Supposedly." },
 
-  { text: "Hardik said he'd rename me..." },
-  { text: '"right before launch, until..."' },
-
-  { text: '"just one more feature."' },
-  { text: "Again." },
-
-  { text: "And again." },
-
-  { text: "At this point..." },
-  { text: "I don't think he knows what 'finished' means." },
-
-  { text: "He's probably around here somewhere..." },
-
-  { text: "Moving a button..." },
-  { text: "three pixels to the left." },
-
-  { text: "Calling it..." },
-  { text: '"a huge improvement."' },
-
-  { text: "Trust me." },
-
-  { text: "If we wait for him..." },
-  { text: "this introduction will be rewritten too." },
-
-  { text: "So..." },
+  { text: "I'll be your guide." },
 
   {
     text: "Projects.",
@@ -56,7 +29,10 @@ const INTRO_LINES: IntroLine[] = [
     gesture: "projects",
   },
 
-  { text: "That's where the sleepless nights went.", highlight: "projects" },
+  {
+    text: "Start here.",
+    highlight: "projects",
+  },
 
   {
     text: "About.",
@@ -65,7 +41,10 @@ const INTRO_LINES: IntroLine[] = [
     look: "up",
   },
 
-  { text: "You'll understand why he's like this.", highlight: "about" },
+  {
+    text: "If you're curious.",
+    highlight: "about",
+  },
 
   {
     text: "Let's Connect.",
@@ -74,19 +53,14 @@ const INTRO_LINES: IntroLine[] = [
   },
 
   {
-    text: "He's always looking for people...",
+    text: "Don't be a stranger.",
     highlight: "connect",
   },
 
   {
-    text: "who build crazy things too.",
-    highlight: "connect",
+    text: "Have fun.",
   },
-
-  { text: "I'll stay here..." },
-  { text: "making sure he doesn't add another feature." },
 ];
-
 
 
 type HomeIntroProps = {
